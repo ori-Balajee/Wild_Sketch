@@ -1,5 +1,6 @@
 const rooms = require("../rooms");
 const generateRoomCode = require("../utils/generateRoomCode");
+const getRandomWords = require("../utils/getRandomWords");
 
 function socketHandler(io) {
     io.on("connection", (socket) => {
@@ -25,6 +26,13 @@ function socketHandler(io) {
                     maxRounds: 3
                 }
             };
+
+            const wordChoices = getRandomWords();
+
+            io.to(drawer.id).emit(
+                "choose-word",
+                wordChoices
+            );
 
             socket.join(roomId);
 
