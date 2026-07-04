@@ -14,14 +14,15 @@ function socketHandler(io) {
                 players: [
                     {
                         id: socket.id,
-                        username
+                        username,
+                        score: 0
                     }
                 ], game: {
                     started: false,
                     currentDrawerIndex: 0,
                     currentWord: "",
                     round: 1,
-                    maxRounds:3
+                    maxRounds: 3
                 }
             };
 
@@ -86,6 +87,31 @@ function socketHandler(io) {
                 }
             }
         });
+
+        socket.on("start-game", ({ roomId }) => {
+            const room = rooms[roomId];
+            if (!room) return;
+
+            if (socket.id !== room.host) {
+                socket.emit(
+                    "error-message",
+                    "Only host can start"
+                );
+                return;
+            }
+
+            room.game.started = true;
+            room.game.currentDrawerIndex = 0;
+            room.game.round = 1;
+
+            io.to(roomId).emit("game-started", room);
+
+            const drawer = room.players[room.game.currentDrawerIndex];
+
+            io.to(roomId).emit("new-turn", {
+                drawerId: drawer.id
+            })
+        })
     });
 }
 
