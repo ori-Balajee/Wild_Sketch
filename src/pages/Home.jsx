@@ -15,6 +15,7 @@ function Home() {
   useEffect(() => {
   
     const handlePlayerJoined = (data) => {
+      console.log("Player joined event received on frontend:", data);
       // If the room data is sent back, we redirect the user to the lobby
       if (data && data.roomId) {
         navigate(`/lobby/${data.roomId}`, { state: data });
@@ -32,8 +33,8 @@ function Home() {
     if (!username.trim()) return;
 
     // Send username alongside the custom settings payload
-    socket.emit("create-room", {
-      username,
+    socket.emit("create_room", {
+      hostName: username,
       settings: {
         maxPlayers,
         rounds,
@@ -45,9 +46,9 @@ function Home() {
   const joinRoom = () => {
     if (!username.trim() || !roomId.trim()) return;
 
-    socket.emit("join-room", {
+    socket.emit("join_room", {
       roomId: roomId.toUpperCase(),
-      username
+      playerName : username
     });
   };
 
