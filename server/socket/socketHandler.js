@@ -16,7 +16,13 @@ function socketHandler(io) {
                         id: socket.id,
                         username
                     }
-                ]
+                ], game: {
+                    started: false,
+                    currentDrawerIndex: 0,
+                    currentWord: "",
+                    round: 1,
+                    maxRounds:3
+                }
             };
 
             socket.join(roomId);

@@ -1,25 +1,39 @@
-import { useParams } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 
 function Lobby() {
-  const { roomId } = useParams();
 
-  return (
-    <div className="min-h-screen bg-slate-100 p-8">
+    const location = useLocation();
 
-      <div className="max-w-4xl mx-auto bg-white rounded-xl p-6 shadow">
+    const room = location.state;
 
-        <h1 className="text-3xl font-bold mb-4">
-          Lobby
-        </h1>
+    return (
+        <div className="p-8">
 
-        <p className="text-gray-500">
-          Room: {roomId}
-        </p>
+            <h1 className="text-4xl font-bold mb-4">
+                Lobby
+            </h1>
 
-      </div>
+            <h2 className="mb-6">
+                Room: {room?.id}
+            </h2>
 
-    </div>
-  );
+            <div className="space-y-3">
+
+                {room?.players?.map(
+                    (player)=>(
+                        <div
+                            key={player.id}
+                            className="bg-white shadow p-4 rounded"
+                        >
+                            {player.username}
+                        </div>
+                    )
+                )}
+
+            </div>
+
+        </div>
+    );
 }
 
 export default Lobby;
