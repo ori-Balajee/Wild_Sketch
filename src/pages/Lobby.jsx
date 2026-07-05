@@ -27,9 +27,11 @@ function Lobby() {
       }
     };
 
-    const handleGameStarted = () => {
+    const handleGameStarted = (data) => {
       console.log("Game is starting! Redirecting to game board...");
-      navigate(`/game/${roomId}`);
+      navigate(`/game/${roomId}`,{state:{
+        players: data?.players || players
+      }});
     };
 
     socket.on("player_joined", handlePlayerJoined);
@@ -41,7 +43,7 @@ function Lobby() {
       socket.off("player_left", handlePlayerLeft);
       socket.off("game_started", handleGameStarted);
     };
-  }, [roomId, navigate]);
+  }, [roomId, navigate, players]);
 
   // Triggered only by the host
   const handleStartGame = () => {

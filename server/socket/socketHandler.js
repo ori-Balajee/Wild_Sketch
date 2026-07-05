@@ -14,7 +14,8 @@ function socketHandler(io) {
             const hostPlayer = {
                 id: socket.id,
                 playerName: hostName,
-                isHost: true
+                isHost: true,
+                score: 0
             };
 
             rooms[roomId] = {
@@ -24,7 +25,16 @@ function socketHandler(io) {
                     rounds: settings?.rounds || 3,
                     drawTime: settings?.drawTime || 60,
                 },
-                players: [hostPlayer] // The host is the first player in the list
+                players: [hostPlayer],
+
+                currentRound: 0,
+                drawerIndex: 0,
+                currentWord: "",
+                timer: 0,
+                timerId: null,
+
+                wordOptionsSaved: [],
+                currentDrawerIdSaved: null
             };
 
             socket.join(roomId);
@@ -42,10 +52,10 @@ function socketHandler(io) {
             const targetRoomId = roomId?.toUpperCase();
             const room = rooms[targetRoomId];
 
-            if (!room){
+            if (!room) {
                 console.log("oops");
                 return;
-            } 
+            }
 
             // Is the room full?
             if (room.players.length >= room.settings.maxPlayers) {
@@ -56,7 +66,8 @@ function socketHandler(io) {
             const guestPlayer = {
                 id: socket.id,
                 playerName: playerName,
-                isHost: false
+                isHost: false,
+                score: 0
             };
 
             // Add to the room's list of players
@@ -64,12 +75,15 @@ function socketHandler(io) {
 
             socket.join(targetRoomId);
 
-            // Broadcast the 'player_joined' event to EVERYONE inside this room channel
-            io.to(targetRoomId).emit("player_joined", {
+            const payload = {
                 roomId: targetRoomId,
                 player: guestPlayer,
                 players: room.players
-            });
+            };
+
+            // Direct emit to the joiner and broadcast to the rest
+            socket.emit("player_joined", payload);
+            socket.to(targetRoomId).emit("player_joined", payload);
 
             console.log(`Player ${playerName} successfully joined room: ${targetRoomId}`);
         });
@@ -97,24 +111,139 @@ function socketHandler(io) {
         });
 
         socket.on("start_game", ({ roomId }) => {
-            
+
             const targetRoomId = roomId?.toUpperCase();
             const room = rooms[targetRoomId];
 
             if (!room) return;
 
-    
+            room.currentRound = 1;
+            room.drawerIndex = 0;
+
             const requestingPlayer = room.players.find(p => p.id === socket.id);
             if (!requestingPlayer || !requestingPlayer.isHost) {
                 socket.emit("error_message", "Only the host can start the game.");
                 return;
             }
 
-            io.to(targetRoomId).emit("game_started");
-            
+            io.to(targetRoomId).emit("game_started", { players: room.players });
+
+            setTimeout(() => {
+                startNewTurn(io, targetRoomId);
+            }, 1000);
+
             console.log(`Game successfully started in room: ${targetRoomId}`);
+        });
+
+        socket.on("word_chosen", ({ roomId, word }) => {
+            const targetRoomId = roomId?.toUpperCase();
+            const room = rooms[targetRoomId];
+
+            if (!room) return;
+
+            room.currentWord = word;
+            room.timer = room.settings.drawTime; 
+
+            io.to(targetRoomId).emit("round_start_drawing", {
+                word: word, 
+            });
+
+            runTurnTimer(io, targetRoomId);
+
+            console.log(`Word "${word}" chosen in room ${targetRoomId}. Timer started.`);
         });
     });
 }
 
+function startNewTurn(io, roomId) {
+    const room = rooms[roomId];
+    if (!room || room.players.length === 0) return;
+
+    const currentDrawer = room.players[room.drawerIndex];
+    if (!currentDrawer) return;
+
+    const wordOptions = getRandomWords();
+    room.wordOptionsSaved = wordOptions;
+    room.currentDrawerIdSaved = currentDrawer.id;
+
+    room.players.forEach((player) => {
+        const isCurrentDrawer = player.id === currentDrawer.id;
+
+        io.to(player.id).emit("round_start", {
+            drawerId: currentDrawer.id,
+            drawerName: currentDrawer.playerName,
+            round: room.currentRound,
+            drawTime: room.settings.drawTime,
+            wordOptions: isCurrentDrawer ? wordOptions : null
+        });
+    });
+
+    io.to(roomId).emit("receive_message", {
+        id: Math.random().toString(36).substring(2, 9),
+        sender: "System",
+        text: `${currentDrawer.playerName} is choosing a word...`,
+        system: true
+    });
+}
+
+function runTurnTimer(io, roomId) {
+    const room = rooms[roomId];
+    if (!room) return;
+
+    clearInterval(room.timerId);
+
+    room.timerId = setInterval(() => {
+        if (!rooms[roomId]) {
+            clearInterval(room.timerId);
+            return;
+        }
+
+        room.timer--;
+        io.to(roomId).emit("timer_tick", room.timer);
+
+        if (room.timer <= 0) {
+            clearInterval(room.timerId);
+            endTurn(io, roomId, "Time's up!");
+        }
+    }, 1000);
+}
+
+function endTurn(io, roomId) {
+    const room = rooms[roomId];
+    if (!room) return;
+
+    clearInterval(room.timerId);
+    room.drawerIndex++;
+
+    let nextDrawerIndex = room.drawerIndex;
+    let nextRound = room.currentRound;
+
+    if (nextDrawerIndex >= room.players.length) {
+        nextDrawerIndex = 0;
+        nextRound++;
+    }
+
+    const nextDrawer = room.players[nextDrawerIndex] || null;
+
+    io.to(roomId).emit("round_end", {
+        word: room.currentWord,
+        scores: room.players.map(p => ({ id: p.id, playerName: p.playerName, score: p.score })),
+        nextDrawer: nextDrawer ? nextDrawer.playerName : null
+    });
+
+    room.drawerIndex = nextDrawerIndex;
+    room.currentRound = nextRound;
+
+    if (room.currentRound > room.settings.rounds) {
+        io.to(roomId).emit("game_over", {
+            winner: room.players.reduce((max, p) => p.score > max.score ? p : max, room.players[0]),
+            leaderboard: room.players.sort((a, b) => b.score - a.score)
+        });
+        return;
+    }
+
+    setTimeout(() => {
+        startNewTurn(io, roomId);
+    }, 4000);
+}
 module.exports = socketHandler;
