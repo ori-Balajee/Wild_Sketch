@@ -3,10 +3,9 @@ WILD SKETCH
 DEPLOYED : https://wild-sketch.vercel.app
 
 ### NOTE
+- Don't refresh the page or perform any action that reloads the page mid game, your socket.id will be changed.
 - There must atleast be 2 players to start the game
 - Trying to Enter mid-game after the host has Started the game might lock you in Lobby
-
-
 
 This project is a multiplayer drawing and guessing game inspired by Scribble.io, where players take turns drawing a selected word while others try to guess it in real time. The game is designed to create an interactive and fun experience by combining creativity, communication, and competitive gameplay.
 Players can join a game room, participate with multiple users simultaneously, and earn points based on how quickly and accurately they guess the drawing. The application provides a smooth real-time experience using a MERN stack architecture, enabling instant updates for drawings, messages, scores, and game events.
