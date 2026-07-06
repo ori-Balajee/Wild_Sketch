@@ -107,83 +107,117 @@ function Game() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white flex flex-col p-6 font-sans select-none relative">
+    <div className="min-h-screen bg-[#2d301d] text-[#f4edd1] flex flex-col p-6 font-mono select-none relative tracking-tight selection:bg-[#c4b63a] selection:text-[#2d301d]">
 
-      {/* HEADER HUD */}
-      <div className="w-full max-w-6xl mx-auto bg-slate-800 border border-slate-700 p-5 rounded-xl flex justify-between items-center mb-6 shadow-md">
-        <div>
-          <h2 className="text-xl font-bold tracking-wide text-indigo-400">Room: {roomId?.toUpperCase()}</h2>
-          <h3 className="text-sm text-slate-300 mt-1">Round {currentRound}</h3>
-          <p className="text-xs text-slate-400 mt-0.5">
-            Current Phase: <span className="text-sky-400 font-semibold uppercase">{gamePhase}</span>
+      {/* BACKGROUND DECORATIVE GRID LINES */}
+      <div className="absolute inset-0 opacity-[0.02] pointer-events-none bg-[linear-gradient(to_right,#f4edd1_1px,transparent_1px),linear-gradient(to_bottom,#f4edd1_1px,transparent_1px)] bg-[size:32px_32px]" />
+
+      {/* TACTICAL HEADER HUD CONTAINER */}
+      <div className="w-full max-w-6xl mx-auto bg-[#525636] border-2 border-[#1c1f12] p-0 rounded-none flex flex-col md:flex-row justify-between items-stretch mb-6 shadow-[4px_4px_0px_0px_#1c1f12] divide-y-2 md:divide-y-0 md:divide-x-2 divide-[#1c1f12]">
+        <div className="p-4 flex-grow relative">
+          <span className="absolute top-1 left-2 text-[8px] text-[#c4b63a] font-bold tracking-widest">[SYS_LOC]</span>
+          <h2 className="text-lg font-black tracking-tighter uppercase pt-1">Room: {roomId?.toUpperCase()}</h2>
+        </div>
+
+        <div className="p-4 px-6 flex flex-col justify-center bg-[#1c1f12]/10 relative min-w-[200px]">
+          <span className="absolute top-1 left-2 text-[8px] text-[#c4b63a] font-bold tracking-widest">[SYS_CYCLE]</span>
+          <h3 className="text-xs font-black uppercase pt-1 text-[#c4b63a]">Round {currentRound}</h3>
+          <p className="text-[10px] text-[#f4edd1]/70 mt-0.5">
+            Current Phase: <span className="text-[#f4edd1] font-bold underline decoration-[#c4b63a] underline-offset-2">{gamePhase}</span>
           </p>
         </div>
 
-        <div className="text-2xl font-mono font-bold px-5 py-2 rounded-lg bg-slate-950 text-emerald-400 border border-slate-700">
-          Time: {timer}s
+        <div className="p-4 px-6 flex items-center bg-[#1c1f12]/20 relative min-w-[160px]">
+          <span className="absolute top-1 left-2 text-[8px] text-[#c4b63a]/70 font-bold tracking-widest">[SYS_TIME]</span>
+          <div className="text-xl font-black text-[#c4b63a] tracking-tight pt-1">
+            Time: {timer}s
+          </div>
         </div>
       </div>
 
       {/* THREE-COLUMN ASYMMETRIC GRID LAYER */}
-      <div className={`w-full max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-[210px_1fr_300px] gap-4 items-start grow transition-all duration-300 ${gamePhase === "over" ? "blur-md pointer-events-none brightness-50" : ""
+      <div className={`w-full max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-[220px_1fr_300px] gap-6 items-start grow transition-all duration-300 ${gamePhase === "over" ? "blur-md pointer-events-none brightness-50" : ""
         }`}>
 
-        {/* COLUMN 1: PLAYERS (COMPACT FOOTPRINT) */}
-        <div className="bg-slate-800 border border-slate-700 rounded-xl p-3 flex flex-col justify-between shadow-md h-96">
-          <div>
-            <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-700 pb-1.5 mb-2">
-              Players
-            </h3>
-            <div className="flex flex-col gap-1.5 overflow-y-auto max-h-[20rem]">
-              {players.map((p) => (
-                <div
-                  key={p.id}
-                  className={`flex flex-col p-2 rounded-lg border text-xm ${p.id === currentDrawerId
-                    ? "bg-amber-950/40 border-amber-500/50 text-amber-200"
-                    : "bg-slate-900/60 border-slate-700/40 text-slate-300"
-                    }`}
-                >
-                  <span className="truncate font-semibold flex items-center gap-1">
-                    {p.id === currentDrawerId && "🎨"} {p.playerName}
-                  </span>
-                  <span className="text-emerald-400 font-mono text-[10px] mt-0.5">{p.score || 0} pts</span>
-                </div>
-              ))}
-            </div>
+        {/* COLUMN 1: PLAYERS (Index Frame Style) */}
+        <div className="bg-[#525636] border-2 border-[#1c1f12] p-4 flex flex-col shadow-[4px_4px_0px_0px_#1c1f12] h-96 relative">
+          {/* Subtle Frame Corner Ticks */}
+          <div className="absolute top-1 left-1 text-[8px] text-[#1c1f12]/40">┌</div>
+          <div className="absolute top-1 right-1 text-[8px] text-[#1c1f12]/40">┐</div>
+          <div className="absolute bottom-1 left-1 text-[8px] text-[#1c1f12]/40">└</div>
+          <div className="absolute bottom-1 right-1 text-[8px] text-[#1c1f12]/40">┘</div>
+
+          <h3 className="text-xs font-black text-[#c4b63a] uppercase tracking-wider border-b border-[#1c1f12] pb-2 mb-3 flex items-center justify-between">
+            <span>// Players</span>
+            <span className="text-[9px] text-[#f4edd1]/40 font-normal">LIST_V1.0</span>
+          </h3>
+
+          <div className="flex flex-col gap-2 overflow-y-auto pr-1 grow custom-scrollbar">
+            {players.map((p) => (
+              <div
+                key={p.id}
+                className={`p-2.5 border-2 relative transition-all ${p.id === currentDrawerId
+                    ? "bg-[#c4b63a] border-[#1c1f12] text-[#2d301d] font-black shadow-[2px_2px_0px_0px_#1c1f12]"
+                    : "bg-[#1c1f12]/10 border-[#1c1f12]/40 text-[#f4edd1]"
+                  }`}
+              >
+                <span className="truncate text-xs tracking-wide flex items-center gap-1.5">
+                  {p.id === currentDrawerId ? (
+                    <span className="text-[10px] bg-[#2d301d] text-[#c4b63a] px-1 py-0.5 font-sans">🎨</span>
+                  ) : (
+                    <span className="text-[#c4b63a] font-normal">›</span>
+                  )}
+                  {p.playerName}
+                </span>
+                <span className={`block text-[9px] mt-1 tracking-widest font-bold ${p.id === currentDrawerId ? "text-[#2d301d]/60" : "text-[#c4b63a]"}`}>
+                  {p.score || 0} pts
+                </span>
+              </div>
+            ))}
           </div>
         </div>
 
-        {/* COLUMN 2: ORIGINAL LARGE CANVAS WORKSPACE */}
-        {/* NEW UPDATED LINE: */}
-        <div className="bg-slate-950 rounded-xl p-6 md:min-h-[24rem] h-full flex flex-col items-center justify-center border-2 border-slate-800 relative shadow-inner overflow-hidden">
+        {/* COLUMN 2: LARGE INTERACTIVE RADAR-CANVAS FIELD */}
+        <div className="bg-[#1c1f12]/20 border-2 border-[#1c1f12] p-6 md:min-h-[26rem] h-full flex flex-col items-center justify-center relative shadow-inner">
+
+          {/* Tactical Viewport Crosshair Accents */}
+          <div className="absolute top-3 left-3 border-t-2 border-l-2 border-[#c4b63a]/40 w-3 h-3 pointer-events-none" />
+          <div className="absolute top-3 right-3 border-t-2 border-r-2 border-[#c4b63a]/40 w-3 h-3 pointer-events-none" />
+          <div className="absolute bottom-3 left-3 border-b-2 border-l-2 border-[#c4b63a]/40 w-3 h-3 pointer-events-none" />
+          <div className="absolute bottom-3 right-3 border-b-2 border-r-2 border-[#c4b63a]/40 w-3 h-3 pointer-events-none" />
 
           {gamePhase === "waiting" && (
-            <div className="text-center">
-              <h3 className="text-lg font-medium text-slate-300">Waiting for match loop initiation...</h3>
-              <p className="text-xs text-slate-500 mt-2 animate-pulse">Syncing room states across connections.</p>
+            <div className="text-center p-6 border border-dashed border-[#c4b63a]/30 max-w-xs bg-[#525636]/20">
+              <h3 className="text-xs font-black uppercase text-[#f4edd1] tracking-wide">Waiting for match loop initiation...</h3>
+              <p className="text-[10px] text-[#c4b63a] mt-2 animate-pulse uppercase tracking-widest">Syncing room states across connections.</p>
             </div>
           )}
 
           {gamePhase === "selecting" && (
-            <div className="text-center">
+            <div className="text-center w-full max-w-sm z-10">
               {amIDrawer ? (
-                <div>
-                  <h3 className="text-xl font-bold text-amber-400 mb-5 tracking-wide uppercase">Your Turn! Pick a Secret Word:</h3>
-                  <div className="flex gap-3 justify-center flex-wrap">
+                <div className="bg-[#525636] border-2 border-[#1c1f12] p-5 shadow-[4px_4px_0px_0px_#1c1f12]">
+                  <h3 className="text-xs font-black text-[#c4b63a] mb-4 tracking-wider uppercase text-left border-b border-[#1c1f12] pb-2">
+                    [!] Your Turn! Pick a Secret Word:
+                  </h3>
+                  <div className="flex flex-col gap-2">
                     {wordOptions.map((word) => (
                       <button
                         key={word}
                         onClick={() => selectWordHandler(word)}
-                        className="bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 px-6 rounded-xl shadow-md uppercase tracking-wider text-sm transition-all transform hover:scale-105"
+                        className="bg-[#c4b63a] hover:bg-[#d8c943] text-[#2d301d] font-black py-2 px-4 border-2 border-[#1c1f12] shadow-[2px_2px_0px_0px_#1c1f12] uppercase tracking-widest text-xs transition-all active:translate-y-0.5 active:shadow-none cursor-pointer text-left flex justify-between items-center"
                       >
-                        {word}
+                        <span>{word}</span>
+                        <span className="text-[9px] opacity-60">SELECT ↵</span>
                       </button>
                     ))}
                   </div>
                 </div>
               ) : (
-                <div className="animate-pulse">
-                  <h3 className="text-lg text-indigo-300 font-medium">{currentDrawerName || "The artist"} is selecting a secret word...</h3>
+                <div className="animate-pulse border-2 border-[#1c1f12] py-4 px-6 bg-[#525636]/30 max-w-xs mx-auto">
+                  <h3 className="text-xs text-[#c4b63a] font-bold uppercase tracking-wider">
+                    {currentDrawerName || "The artist"} is selecting a secret word...
+                  </h3>
                 </div>
               )}
             </div>
@@ -191,23 +225,32 @@ function Game() {
 
           {gamePhase === "drawing" && (
             <div className="text-center w-full flex flex-col items-center">
-              <p className="text-xs font-bold tracking-widest text-slate-500 uppercase mb-2">
-                {amIDrawer ? "🎨 YOU ARE INTERPRETING" : `👀 VIEWING ${currentDrawerName.toUpperCase()}'S COMPOSITION`}
-              </p>
-              <h1 className="tracking-[0.4em] font-mono text-xl md:text-2xl font-black text-sky-400 my-2 select-text">
-                {displayWord ? displayWord.toUpperCase() : ""}
-              </h1>
+              <div className="w-full max-w-xl flex justify-between items-end mb-3 px-1">
+                <span className="text-[9px] font-black tracking-wider text-[#c4b63a]">
+                  {amIDrawer ? "● YOU ARE INTERPRETING" : `○ VIEWING ${currentDrawerName.toUpperCase()}'S COMPOSITION`}
+                </span>
 
-              <div className="mt-4 w-full flex justify-center">
+                <h1 className="tracking-[0.25em] font-black text-sm text-[#f4edd1] bg-[#1c1f12]/60 px-3 py-1 border border-[#1c1f12] select-text">
+                  {displayWord ? displayWord.toUpperCase() : ""}
+                </h1>
+              </div>
+
+              <div className="w-full flex justify-center border-2 border-[#1c1f12] p-2.5 bg-[#2d301d]/90 shadow-inner relative">
+                {/* Secondary viewport frame ticks inside canvas container */}
+                <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-[#f4edd1]/20" />
+                <div className="absolute top-0 right-0 w-2 h-2 border-t border-r border-[#f4edd1]/20" />
                 <Canvas roomId={roomId} amIDrawer={amIDrawer} />
               </div>
             </div>
           )}
 
           {gamePhase === "intermission" && (
-            <div className="text-center max-w-sm">
-              <h3 className="text-xl font-extrabold text-amber-400 leading-snug uppercase tracking-wide">{intermissionStatus}</h3>
-              <p className="text-xs text-slate-500 mt-3 animate-pulse">Calculating score delta increments...</p>
+            <div className="text-center max-w-sm p-5 border-2 border-[#1c1f12] bg-[#525636]/40 shadow-[4px_4px_0px_0px_#1c1f12]">
+              <h3 className="text-sm font-black text-[#c4b63a] leading-relaxed uppercase tracking-wide">{intermissionStatus}</h3>
+              <div className="w-full bg-[#1c1f12]/40 h-1 mt-4 relative overflow-hidden">
+                <div className="absolute top-0 left-0 h-full bg-[#c4b63a] w-1/2 animate-loading-bar" />
+              </div>
+              <p className="text-[9px] text-[#f4edd1]/40 mt-2.5 uppercase tracking-widest">Calculating score delta increments...</p>
             </div>
           )}
 
@@ -220,8 +263,11 @@ function Game() {
 
       {/* FLOATING END GAME MODAL OVERLAY */}
       {gamePhase === "over" && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
-          <div className="bg-slate-800 border border-slate-700 rounded-2xl shadow-2xl p-6 max-w-md w-full transform scale-100 transition-transform duration-300">
+        <div className="fixed inset-0 z-50 bg-[#1c1f12]/90 flex items-center justify-center p-4 backdrop-blur-xs">
+          <div className="bg-[#525636] border-2 border-[#1c1f12] shadow-[6px_6px_0px_0px_#1c1f12] p-6 max-w-md w-full relative">
+            <div className="absolute -top-3 left-4 bg-[#2d301d] border border-[#1c1f12] text-[#c4b63a] text-[9px] font-bold px-2 py-0.5 uppercase tracking-wider">
+              [TERMINAL_OVER_]
+            </div>
             <GameEnd players={players} onReturnHome={() => navigate("/")} />
           </div>
         </div>
