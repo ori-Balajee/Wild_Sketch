@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import socket from "../socket/socket";
+import Canvas from "../components/Canvas";
+import GameEnd from "../components/GameEnd";
+import Chat from "../components/Chat";
 
 function Game() {
   console.log("My current frontend Socket ID is:", socket.id);
@@ -20,7 +23,7 @@ function Game() {
 
   const amIDrawer = currentDrawerId === socket.id;
 
-useEffect(() => {
+  useEffect(() => {
     if (location.state?.players && gamePhase === "waiting") {
       setGamePhase("selecting");
     }
@@ -48,6 +51,16 @@ useEffect(() => {
       setDisplayWord("");
     });
 
+    socket.on("round_start_drawing", (data) => {
+      setGamePhase("drawing");
+
+      if (data.drawerId === socket.id) {
+        setDisplayWord(data.word);
+      } else {
+        setDisplayWord(data.word.replace(/[a-zA-Z]/g, "_ "));
+      }
+    });
+
     socket.on("timer_tick", (timeRemaining) => {
       setTimer(timeRemaining);
     });
@@ -64,8 +77,9 @@ useEffect(() => {
 
     socket.on("game_over", (data) => {
       setGamePhase("over");
-      alert(`Game Over! Winner: ${data.winner?.playerName}`);
-      navigate("/");
+      if (data.players) {
+        setPlayers(data.players);
+      }
     });
 
     socket.on("player_joined", (data) => {
@@ -79,6 +93,7 @@ useEffect(() => {
     return () => {
       socket.off("game_started");
       socket.off("round_start");
+      socket.off("round_start_drawing")
       socket.off("timer_tick");
       socket.off("round_end");
       socket.off("game_over");
@@ -175,8 +190,8 @@ useEffect(() => {
                 {displayWord ? displayWord.toUpperCase() : ""}
               </h1>
 
-              <div className="mt-4 w-full max-w-md h-40 border-2 border-dashed border-slate-800 bg-slate-900/40 rounded-xl flex items-center justify-center text-slate-600 text-xs font-medium">
-                [ Dynamic Graphics Rendering Engine Target ]
+              <div className="mt-4 w-full flex justify-center">
+                <Canvas roomId={roomId} amIDrawer={amIDrawer} />
               </div>
             </div>
           )}
@@ -190,6 +205,14 @@ useEffect(() => {
 
         </div>
       </div>
+
+      {gamePhase === "over" && (
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-slate-800 border border-slate-700 rounded-2xl shadow-2xl p-6 max-w-md w-full transform scale-100 transition-transform duration-300">
+            <GameEnd players={players} onReturnHome={() => navigate("/")} />
+          </div>
+        </div>
+      )}
 
     </div>
   );

@@ -142,15 +142,29 @@ function socketHandler(io) {
             if (!room) return;
 
             room.currentWord = word;
-            room.timer = room.settings.drawTime; 
+            room.timer = room.settings.drawTime;
 
             io.to(targetRoomId).emit("round_start_drawing", {
-                word: word, 
+                word: word,
+                drawerId: room.currentDrawerIdSaved
             });
 
             runTurnTimer(io, targetRoomId);
 
             console.log(`Word "${word}" chosen in room ${targetRoomId}. Timer started.`);
+        });
+
+        socket.on("drawing_data", ({ roomId, from, to, color, lineWidth }) => {
+            const targetRoomId = roomId?.toUpperCase();
+
+            socket.to(targetRoomId).emit("draw_stroke", { from, to, color, lineWidth });
+            console.log("drawing")
+        });
+
+        socket.on("clear_drawing", ({ roomId }) => {
+            const targetRoomId = roomId?.toUpperCase();
+            socket.to(targetRoomId).emit("clear_canvas");
+            console.log("clear the board")
         });
     });
 }
